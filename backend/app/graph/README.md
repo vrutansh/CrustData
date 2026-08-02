@@ -1,1 +1,1 @@
-Graph orchestration placeholder.
+Graph conversion utilities for translating planner output into workflow nodes and edges.
