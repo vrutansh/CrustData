@@ -2,6 +2,6 @@
 
 import { BaseNode } from './BaseNode';
 
-export function SlackNode(props: any) {
+export function GmailNode(props: any) {
   return <BaseNode {...props} />;
 }

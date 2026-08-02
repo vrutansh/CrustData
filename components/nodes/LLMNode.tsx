@@ -1,5 +1,7 @@
+"use client";
+
 import { BaseNode } from './BaseNode';
 
-export function LLMNode() {
-  return <BaseNode label="LLM Node" />;
+export function LLMNode(props: any) {
+  return <BaseNode {...props} />;
 }

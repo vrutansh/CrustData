@@ -1,5 +1,7 @@
+"use client";
+
 import { BaseNode } from './BaseNode';
 
-export function EmailNode() {
-  return <BaseNode label="Email Node" />;
+export function EmailNode(props: any) {
+  return <BaseNode {...props} />;
 }
