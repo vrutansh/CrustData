@@ -2,6 +2,6 @@
 
 import { BaseNode } from './BaseNode';
 
-export function WatcherNode(props: any) {
+export function CompanyEnrichmentNode(props: any) {
   return <BaseNode {...props} />;
 }
