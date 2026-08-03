@@ -8,23 +8,9 @@ import { WorkflowBackground } from './WorkflowBackground';
 import { WorkflowMiniMap } from './WorkflowMiniMap';
 import { WorkflowControls } from './WorkflowControls';
 import { NodePalette } from './NodePalette';
-import { WatcherNode } from '@/components/nodes/WatcherNode';
-import { CompanySearchNode } from '@/components/nodes/CompanySearchNode';
-import { CompanyEnrichmentNode } from '@/components/nodes/CompanyEnrichmentNode';
-import { LLMNode } from '@/components/nodes/LLMNode';
-import { SlackNode } from '@/components/nodes/SlackNode';
-import { GmailNode } from '@/components/nodes/GmailNode';
-import { ApprovalNode } from '@/components/nodes/ApprovalNode';
+import { buildNodeTypes } from '@/lib/nodeRegistry';
 
-const nodeTypes: NodeTypes = {
-  watcher: WatcherNode,
-  search: CompanySearchNode,
-  enrichment: CompanyEnrichmentNode,
-  llm: LLMNode,
-  slack: SlackNode,
-  email: GmailNode,
-  approval: ApprovalNode,
-};
+const nodeTypes: NodeTypes = buildNodeTypes();
 
 const edgeTypes: EdgeTypes = {};
 

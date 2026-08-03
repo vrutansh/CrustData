@@ -4,28 +4,13 @@ import { Plus, LayoutGrid, Play, Trash2 } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
 
 export function WorkflowToolbar() {
-  const addNode = useWorkflowStore((state) => state.addNode);
   const clearGraph = useWorkflowStore((state) => state.clearGraph);
-  const nodes = useWorkflowStore((state) => state.nodes);
+  const setPaletteOpen = useWorkflowStore((state) => state.setPaletteOpen);
   const selectNode = useWorkflowStore((state) => state.selectNode);
 
   const handleAdd = () => {
-    const id = `watcher-${nodes.length + 1}`;
-    addNode({
-      id,
-      type: 'watcher',
-      position: { x: 220 + nodes.length * 30, y: 130 + nodes.length * 30 },
-      data: {
-        title: 'Watcher',
-        description: 'Watches for new signals',
-        icon: 'watcher',
-        category: 'trigger',
-        config: {},
-        status: 'idle',
-        color: '#67e8f9',
-      },
-    });
-    selectNode(id);
+    selectNode(null);
+    setPaletteOpen(true);
   };
 
   return (

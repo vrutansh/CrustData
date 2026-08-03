@@ -1,4 +1,79 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useWorkflowStore } from '@/store/workflowStore';
+import { convertWorkflowToReactFlow } from '@/lib/workflowTransformer';
+
+const planSteps = [
+  'Understanding request...',
+  'Selecting trigger...',
+  'Finding required tools...',
+  'Validating workflow...',
+  'Generating layout...',
+  'Canvas animates in...',
+];
+
 export function PromptBox() {
+  const [prompt, setPrompt] = useState('Whenever an AI startup raises funding, summarize it and send me a Slack message.');
+  const [status, setStatus] = useState('Waiting to generate...');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const setNodes = useWorkflowStore((state) => state.setNodes);
+  const setEdges = useWorkflowStore((state) => state.setEdges);
+  const clearGraph = useWorkflowStore((state) => state.clearGraph);
+
+  useEffect(() => {
+    if (!isGenerating) return;
+
+    const interval = window.setInterval(() => {
+      setStepIndex((value) => (value + 1) % planSteps.length);
+    }, 450);
+
+    return () => window.clearInterval(interval);
+  }, [isGenerating]);
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setStatus(planSteps[0]);
+    setStepIndex(0);
+
+    const plannerUrl = process.env.NEXT_PUBLIC_PLANNER_URL ?? 'http://127.0.0.1:8000/api/planner';
+
+    try {
+      const response = await fetch(plannerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await response.json();
+      setStatus(planSteps[Math.min(4, planSteps.length - 1)]);
+      const { nodes, edges } = convertWorkflowToReactFlow(data);
+
+      clearGraph();
+      const stagedNodes = nodes.slice(0, 1);
+      const stagedEdges = edges.filter((edge) => edge.target === stagedNodes[0]?.id || edge.source === 'trigger');
+      setNodes(stagedNodes);
+      setEdges(stagedEdges);
+
+      for (let index = 1; index < nodes.length; index += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 280));
+        setNodes([...nodes.slice(0, index + 1)]);
+        setEdges(edges.filter((edge) => edge.target === nodes[index].id || edge.source === 'trigger' || edge.target === nodes[index - 1]?.id));
+      }
+
+      setStatus('Canvas animates in');
+    } catch (error) {
+      setStatus('Planner unavailable, using fallback workflow');
+      const { nodes, edges } = convertWorkflowToReactFlow({ workflow: { name: 'Fallback', trigger: { type: 'watcher', event: 'trigger' }, steps: [{ id: 'company_search', type: 'company_search', depends_on: [] }] } });
+      clearGraph();
+      setNodes(nodes);
+      setEdges(edges);
+    } finally {
+      setTimeout(() => setIsGenerating(false), 400);
+    }
+  };
+
   return (
     <div
       style={{
@@ -20,21 +95,28 @@ export function PromptBox() {
         }}
       >
         <div style={{ flex: 1 }}>
-          <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Describe your workflow...</div>
-          <div style={{ color: '#cbd5e1', fontSize: '0.95rem' }}>Whenever an AI startup hires a VP Engineering...</div>
+          <textarea
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            style={{ width: '100%', background: 'transparent', border: 'none', color: '#f8fafc', resize: 'none', outline: 'none' }}
+            rows={2}
+          />
+          <div style={{ marginTop: '0.4rem', color: isGenerating ? '#67e8f9' : '#64748b', fontSize: '0.84rem' }}>{isGenerating ? `${planSteps[stepIndex]} · ${status}` : status}</div>
         </div>
         <button
+          onClick={handleGenerate}
+          disabled={isGenerating}
           style={{
             border: 'none',
             borderRadius: 999,
             padding: '0.7rem 1rem',
-            background: 'linear-gradient(135deg, #67e8f9, #7c3aed)',
+            background: isGenerating ? 'rgba(103,232,249,0.25)' : 'linear-gradient(135deg, #67e8f9, #7c3aed)',
             color: '#020617',
             fontWeight: 700,
             cursor: 'pointer',
           }}
         >
-          Generate
+          {isGenerating ? 'Generating...' : 'Generate'}
         </button>
       </div>
     </div>

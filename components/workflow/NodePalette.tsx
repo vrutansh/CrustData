@@ -15,10 +15,11 @@ const nodeTemplates: Array<{ key: string; label: string; description: string; ty
 ];
 
 export function NodePalette() {
-  const [open, setOpen] = useState(false);
   const addNode = useWorkflowStore((state) => state.addNode);
   const nodes = useWorkflowStore((state) => state.nodes);
   const hydrate = useWorkflowStore((state) => state.hydrate);
+  const isPaletteOpen = useWorkflowStore((state) => state.isPaletteOpen);
+  const setPaletteOpen = useWorkflowStore((state) => state.setPaletteOpen);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -26,18 +27,19 @@ export function NodePalette() {
     hydrate();
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'a' || event.key === 'A' || event.key === '+') {
-        event.preventDefault();
-        setOpen((value) => !value);
-      }
+      const target = event.target as HTMLElement | null;
+      const isTypingTarget = !!target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+
+      if (isTypingTarget) return;
+
       if (event.key === 'Escape') {
-        setOpen(false);
+        setPaletteOpen(false);
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [hydrate]);
+  }, [hydrate, setPaletteOpen]);
 
   const handleAdd = (template: (typeof nodeTemplates)[number]) => {
     const id = `${template.key}-${nodes.length + 1}`;
@@ -55,16 +57,16 @@ export function NodePalette() {
         color: '#67e8f9',
       },
     });
-    setOpen(false);
+    setPaletteOpen(false);
   };
 
   return (
     <>
-      {open && (
+      {isPaletteOpen && (
         <div style={{ position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)', width: 360, maxHeight: 420, overflow: 'auto', background: 'rgba(2, 6, 23, 0.96)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 20, boxShadow: '0 20px 70px rgba(2,6,23,0.45)', zIndex: 20, padding: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <div style={{ fontWeight: 700 }}>Search Nodes</div>
-            <button onClick={() => setOpen(false)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', cursor: 'pointer' }}>
+            <button onClick={() => setPaletteOpen(false)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', cursor: 'pointer' }}>
               <X size={16} />
             </button>
           </div>

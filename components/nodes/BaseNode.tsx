@@ -6,6 +6,13 @@ import { motion } from 'framer-motion';
 
 export function BaseNode({ data, selected }: { data: WorkflowNodeData; selected?: boolean }) {
   const color = data.color || '#67e8f9';
+  const statusStyles: Record<WorkflowNodeData['status'], { label: string; color: string }> = {
+    idle: { label: 'Idle', color: '#94a3b8' },
+    running: { label: 'Running', color: '#f59e0b' },
+    success: { label: 'Success', color: '#22c55e' },
+    failed: { label: 'Failed', color: '#f43f5e' },
+  };
+  const status = statusStyles[data.status ?? 'idle'];
 
   return (
     <motion.div
@@ -32,7 +39,7 @@ export function BaseNode({ data, selected }: { data: WorkflowNodeData; selected?
         {data.description}
       </div>
       <div style={{ padding: '0.75rem 0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.72rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <span>Input</span>
+        <span style={{ color: status.color }}>{status.label}</span>
         <span>Output</span>
       </div>
       <Handle type="target" position={Position.Left} style={{ background: color }} />
