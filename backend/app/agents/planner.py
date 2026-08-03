@@ -1,4 +1,4 @@
-from backend.app.schemas.workflow import PlannerResponse, WorkflowStep
+from backend.app.schemas.workflow import PlannerResponse, Trigger, WorkflowDefinition, WorkflowStep
 
 
 def plan_workflow(prompt: str) -> PlannerResponse:
@@ -6,27 +6,36 @@ def plan_workflow(prompt: str) -> PlannerResponse:
 
     if "funding" in prompt_lower:
         return PlannerResponse(
-            steps=[
-                WorkflowStep(id="watcher", type="watcher", depends_on=[], config={"event": "funding_round"}),
-                WorkflowStep(id="company", type="company_search", depends_on=["watcher"], config={"source": "crustdata"}),
-                WorkflowStep(id="summary", type="llm", depends_on=["company"], config={"task": "summarize"}),
-                WorkflowStep(id="slack", type="slack", depends_on=["summary"], config={"channel": "#alerts"}),
-            ]
+            workflow=WorkflowDefinition(
+                name="Funding Monitor",
+                trigger=Trigger(type="watcher", event="funding"),
+                steps=[
+                    WorkflowStep(id="company_search", type="company_search", depends_on=[], config={"source": "crustdata"}),
+                    WorkflowStep(id="summary", type="llm_summary", depends_on=["company_search"], config={"task": "summarize"}),
+                    WorkflowStep(id="slack", type="slack", depends_on=["summary"], config={"channel": "#alerts"}),
+                ],
+            )
         )
 
     if "hire" in prompt_lower or "hiring" in prompt_lower:
         return PlannerResponse(
-            steps=[
-                WorkflowStep(id="watcher", type="watcher", depends_on=[], config={"event": "hiring"}),
-                WorkflowStep(id="company", type="company_search", depends_on=["watcher"], config={"source": "crustdata"}),
-                WorkflowStep(id="enrich", type="company_enrichment", depends_on=["company"], config={"scope": "team"}),
-                WorkflowStep(id="slack", type="slack", depends_on=["enrich"], config={"channel": "#hiring"}),
-            ]
+            workflow=WorkflowDefinition(
+                name="Hiring Monitor",
+                trigger=Trigger(type="watcher", event="hiring"),
+                steps=[
+                    WorkflowStep(id="company_search", type="company_search", depends_on=[], config={"source": "crustdata"}),
+                    WorkflowStep(id="enrich", type="company_enrichment", depends_on=["company_search"], config={"scope": "team"}),
+                    WorkflowStep(id="slack", type="slack", depends_on=["enrich"], config={"channel": "#hiring"}),
+                ],
+            )
         )
 
     return PlannerResponse(
-        steps=[
-            WorkflowStep(id="watcher", type="watcher", depends_on=[], config={"event": "trigger"}),
-            WorkflowStep(id="company", type="company_search", depends_on=["watcher"], config={"source": "crustdata"}),
-        ]
+        workflow=WorkflowDefinition(
+            name="Signal Monitor",
+            trigger=Trigger(type="watcher", event="trigger"),
+            steps=[
+                WorkflowStep(id="company_search", type="company_search", depends_on=[], config={"source": "crustdata"}),
+            ],
+        )
     )

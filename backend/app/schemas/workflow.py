@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List
 from pydantic import BaseModel, Field
 
 
@@ -9,5 +9,16 @@ class WorkflowStep(BaseModel):
     config: dict[str, Any] = Field(default_factory=dict)
 
 
-class PlannerResponse(BaseModel):
+class Trigger(BaseModel):
+    type: str
+    event: str
+
+
+class WorkflowDefinition(BaseModel):
+    name: str
+    trigger: Trigger
     steps: List[WorkflowStep]
+
+
+class PlannerResponse(BaseModel):
+    workflow: WorkflowDefinition
